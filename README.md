@@ -15,6 +15,11 @@ Adding notes on cassandra best practices.
 - Greater than (>) and less than (<) are only supported on clustering column.
 - CQL is not suitable for analytic purposes because it has so many limitations
 
+Keyspace
+- Cassandra keyspace is a namespace that defines how data is replicated on nodes.
+- Typically a cluster has one keyspace per application
+- When creating a keyspace, using the replication strategy class `SimpleStrategy` for development, in production use `NetworkTopologyStrategy`
+
 ## Basics
 
 Get keyspaces info:
