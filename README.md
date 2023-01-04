@@ -167,3 +167,13 @@ There is no `offset` in Casssandra, and querying data from different partitions 
 
 - http://www.inanzzz.com/index.php/post/t7fd/cassandra-pagination-example-with-golang
 - https://medium.com/@shahsiddharth/cassandra-sorting-and-paging-across-multiple-partitions-for-rest-api-cecf452cbf96
+
+
+## Questions
+
+- how to handle pagination (limit/offset) in Cassandra, when there is no `offset`?
+- how to handle pagination across different partition
+- what is the best strategy when deciding on the partition key (use timestamp for bucketing, but then you need a way to track the partition keys, which can probably be another table)
+- what is static column?
+- best practice for materialized view? can it be used to handle denormalization?
+- how to deal with atomic insert (lightweight transaction) across different tables?
