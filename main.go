@@ -40,7 +40,7 @@ func main() {
 		}
 	}
 
-	users, pageState, err := queryUsers(session, 1, nil)
+	users, pageState, err := queryUsers(session, "alice", 1, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -51,20 +51,45 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	users, pageState, err = queryUsers(session, 2, decodedPageState)
+	users, pageState, err = queryUsers(session, "alice", 2, decodedPageState)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Printf("2. users: %+v, pageState: %q\n", users, hex.EncodeToString(pageState))
+
+	users, nextPageState, nextPartitionKey, err := queryUsersDifferentPartition(session, []string{"alice", "bob"}, 3, nil)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("3. users", users)
+	fmt.Println("pageState", hex.EncodeToString(nextPageState))
+	fmt.Println("partitionKey", nextPartitionKey)
 }
 
 func createUser(session *gocql.Session, u User) error {
 	return session.Query("insert into greet.name (name, age, hobby) values (?, ?, ?)", u.Name, u.Age, u.Hobby).Exec()
 }
 
-func queryUsers(session *gocql.Session, pageSize int, pageState []byte) (users []User, nextPageState []byte, err error) {
+func queryUsersDifferentPartition(session *gocql.Session, partitionKeys []string, pageSize int, pageState []byte) (users []User, nextPageState []byte, nextPartitionKey string, err error) {
+	for _, key := range partitionKeys {
+		partitionUsers, partitionPageState, err := queryUsers(session, key, pageSize, pageState)
+		if err != nil {
+			return nil, nil, "", err
+		}
+		users = append(users, partitionUsers...)
+		nextPartitionKey = key
+		nextPageState = partitionPageState
+		if len(users) == pageSize {
+			return users, nextPageState, nextPartitionKey, nil
+		}
+	}
+
+	return
+}
+
+func queryUsers(session *gocql.Session, partitionKey string, pageSize int, pageState []byte) (users []User, nextPageState []byte, err error) {
 	itr := session.
-		Query("select name, age, hobby from greet.name where name = ?", "alice").
+		Query("select name, age, hobby from greet.name where name = ?", partitionKey).
 		WithContext(context.Background()).
 		PageSize(pageSize).
 		PageState(pageState).
