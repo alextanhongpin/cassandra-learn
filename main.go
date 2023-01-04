@@ -57,11 +57,19 @@ func main() {
 	}
 	fmt.Printf("2. users: %+v, pageState: %q\n", users, hex.EncodeToString(pageState))
 
-	users, nextPageState, nextPartitionKey, err := queryUsersDifferentPartition(session, []string{"alice", "bob"}, 3, nil)
+	users, nextPageState, nextPartitionKey, err := queryUsersDifferentPartition(session, "", []string{"alice", "bob"}, 3, nil)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println("3. users", users)
+	fmt.Println("pageState", hex.EncodeToString(nextPageState))
+	fmt.Println("partitionKey", nextPartitionKey)
+
+	users, nextPageState, nextPartitionKey, err = queryUsersDifferentPartition(session, nextPartitionKey, []string{"alice", "bob"}, 3, nextPageState)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("4. users", users)
 	fmt.Println("pageState", hex.EncodeToString(nextPageState))
 	fmt.Println("partitionKey", nextPartitionKey)
 }
@@ -70,8 +78,21 @@ func createUser(session *gocql.Session, u User) error {
 	return session.Query("insert into greet.name (name, age, hobby) values (?, ?, ?)", u.Name, u.Age, u.Hobby).Exec()
 }
 
-func queryUsersDifferentPartition(session *gocql.Session, partitionKeys []string, pageSize int, pageState []byte) (users []User, nextPageState []byte, nextPartitionKey string, err error) {
+func queryUsersDifferentPartition(session *gocql.Session, startPartitionKey string, partitionKeys []string, pageSize int, pageState []byte) (users []User, nextPageState []byte, nextPartitionKey string, err error) {
+	i := -1
+	for j, key := range partitionKeys {
+		if key == startPartitionKey {
+			i = j
+			break
+		}
+	}
+	if i != -1 {
+		partitionKeys = partitionKeys[i:]
+	}
 	for _, key := range partitionKeys {
+		if key != startPartitionKey {
+			pageState = nil
+		}
 		partitionUsers, partitionPageState, err := queryUsers(session, key, pageSize, pageState)
 		if err != nil {
 			return nil, nil, "", err
@@ -96,7 +117,6 @@ func queryUsers(session *gocql.Session, partitionKey string, pageSize int, pageS
 		Iter()
 	defer itr.Close()
 
-	fmt.Println("numRows", itr.NumRows())
 	users = make([]User, 0, itr.NumRows())
 
 	nextPageState = itr.PageState()
