@@ -160,3 +160,10 @@ Output:
 ## Use Expand ON
 
 To show the data in better order.
+
+## Pagination in Cassandra
+
+There is no `offset` in Casssandra, and querying data from different partitions might require a different strategy. Pagination in cassandra can be done using `pageState`.
+
+- http://www.inanzzz.com/index.php/post/t7fd/cassandra-pagination-example-with-golang
+- https://medium.com/@shahsiddharth/cassandra-sorting-and-paging-across-multiple-partitions-for-rest-api-cecf452cbf96
