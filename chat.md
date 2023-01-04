@@ -40,6 +40,17 @@ VALUES (
 	now(),
 	{'alice': toTimestamp(now()), 'bob': toTimestamp(now())}
 );
+
+INSERT INTO chat.message (id, members, sent_by, created_at, msg, msg_sent_to_server, msg_sent_to_recv)
+VALUES (
+	uuid(),
+	['alice', 'bob'],
+	'alice',
+	toDate(now()),
+	{'msgtype': 'message', 'msgdata': 'good'},
+	now(),
+	{'alice': toTimestamp(now()), 'bob': toTimestamp(now())}
+);
 ```
 
 Select:

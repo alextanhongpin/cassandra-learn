@@ -1,8 +1,8 @@
-version: '3.7'
+version: '3.8'
 
 services:
   cassandra:
-    image: 'docker.io/bitnami/cassandra:3-debian-10'
+    image: 'bitnami/cassandra:4.1-debian-11'
     container_name: cassandra-server
     ports:
       - 127.0.0.1:7000:7000
